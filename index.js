@@ -75,3 +75,32 @@ server.delete('/users/:id', (req, res) => {
             res.status(404).json({ error: 'The user with the specified ID does not exist.' });
         });
 });
+
+//remove user with specific user id 
+server.put('/users/:id', (req, res) => {
+    const id = req.params.id;
+    const {name, bio} = req.body;
+
+    if (!name && !bio) {
+        return res.status(400).json({err: 'requires name and bio'});
+    }
+    db.update(id, {name, bio})
+        .then(updated => {
+            if(updated) {
+                db.findById(id)
+                    .then(user => {
+                        res.status(200).json(user);
+                    })
+                    .catch(err => {
+                        console.log('error', err)
+                        res.status(500).json({ error: 'Error retrieving user'})
+
+                    })
+            } else {
+                res.status(404).json({ error: `User with id ${id}: not found`})
+            }
+        })
+        .catch(err =>
+            res.status(500).json({ error: 'Error updating user' })
+        )
+});
